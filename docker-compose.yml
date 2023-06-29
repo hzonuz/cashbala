@@ -7,22 +7,22 @@ services:
     restart: on-failure
     environment:
       POSTGRES_USER: cashbala
-      POSTGRES_PASSWORD: c@shb@la
+      POSTGRES_PASSWORD: c@shb@l@
     volumes:
       - "db:/var/lib/postgresql/data_cashbala"
+    networks:
+      - cashbala
     ports:
-      - "7979:5432"
-    expose:
-      - "7979"
+      - "5432:5432"
 
   api:
     build: ./server/
     restart: on-failure
     environment:
       DB_HOST: pgdba
-      DB_PORT: 7979
+      DB_PORT: 5432
       DB_USER: cashbala
-      DB_PASSWORD: c@shb@la
+      DB_PASSWORD: c@shb@l@
       DB_NAME: cashbala
     ports:
       - "8000:8000"
@@ -30,6 +30,13 @@ services:
       - "8000"
     depends_on:
       - pgdba
+    networks:
+      - cashbala
+
 volumes:
   db:
     driver: local
+
+networks:
+    cashbala:
+        driver: bridge
