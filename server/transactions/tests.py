@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.test import TestCase
+from rest_framework.authtoken.models import Token
 
 from users.models import User
 from transactions.models import Transaction, Category, TransactionTypes
@@ -84,3 +85,29 @@ class TransactionModelTest(TestCase):
         self.assertEqual(get_total_balance(self.user, self.today, self.tomorrow), 0)
 
 
+class TestReport(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="testuser", password="12345678"
+        )
+
+        self.token = Token.objects.create(user=self.user)
+
+        self.transaction = Transaction.objects.create(
+            user=self.user,
+            amount=10000,
+            description="test",
+            category=Category.FOOD,
+            transaction_type=TransactionTypes.EXPENSE,
+        )
+        self.today = self.transaction.date.date()
+        self.tomorrow = self.today + timedelta(days=1)
+
+    def test_report(self):
+        response = self.client.get("/trx/report/v0/",
+                                   {"start_date": self.today, "end_date": self.tomorrow},
+                                   HTTP_AUTHORIZATION=f"Token {self.token.key}")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["total_income"], 0)
+        self.assertEqual(response.data["total_expense"], 10000)
+        self.assertEqual(response.data["total_balance"], -10000)
