@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+
+  pgdba:
+    image: postgres:14.1-alpine
+    restart: on-failure
+    environment:
+      POSTGRES_USER: cashbala
+      POSTGRES_PASSWORD: c@shb@la
+      POSTGRES_DB: cashbala
+    volumes:
+      - "db:/var/lib/postgresql/data_cashbala"
+    ports:
+      - "7979:5432"
+    expose:
+      - "7979"
+
+volumes:
+  db: {}

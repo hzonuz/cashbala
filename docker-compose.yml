@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+
+  pgdba:
+    image: postgres:14.1-alpine
+    restart: on-failure
+    environment:
+      POSTGRES_USER: cashbala
+      POSTGRES_PASSWORD: c@shb@l@
+    volumes:
+      - "db:/var/lib/postgresql/data_cashbala"
+    ports:
+      - "7979:5432"
+    expose:
+      - "7979"
+
+  api:
+    build: ./server/
+    restart: on-failure
+    environment:
+      DB_HOST: pgdb
+      DB_PORT: 7979
+      DB_USER: cashbala
+      DB_PASSWORD: c@shb@l@
+      DB_NAME: cashbala
+    ports:
+      - "8000:8000"
+    expose:
+      - "8000"
+    depends_on:
+      - pgdb
+volumes:
+  db:
+    driver: local
