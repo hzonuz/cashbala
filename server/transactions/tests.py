@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 from django.test import TestCase
 
 from users.models import User
 from transactions.models import Transaction, Category, TransactionTypes
+from transactions.utils import get_total_income, get_total_expense, get_total_balance
 
 
 class TransactionModelTest(TestCase):
@@ -17,6 +20,8 @@ class TransactionModelTest(TestCase):
             category=Category.FOOD,
             transaction_type=TransactionTypes.EXPENSE,
         )
+        self.today = self.transaction.date.date()
+        self.tomorrow = self.today + timedelta(days=1)
 
     def test_transaction_model(self):
         self.assertEqual(self.transaction.user, self.user)
@@ -29,7 +34,7 @@ class TransactionModelTest(TestCase):
         self.assertEqual(str(self.transaction), f"{self.user.username} - 10000")
 
     def test_transaction_balance(self):
-        self.assertEqual(self.user.balance, 10000)
+        self.assertEqual(self.user.balance, -10000)
         self.assertEqual(self.user.income, 0)
         self.assertEqual(self.user.expense, 10000)
 
@@ -41,7 +46,41 @@ class TransactionModelTest(TestCase):
             transaction_type=TransactionTypes.INCOME,
         )
 
-        self.assertEqual(self.user.balance, 20000)
+        self.assertEqual(self.user.balance, 0)
         self.assertEqual(self.user.income, 10000)
         self.assertEqual(self.user.expense, 10000)
-        
+
+    def test_total_income(self):
+        Transaction.objects.create(
+            user=self.user,
+            amount=10000,
+            description="test",
+            category=Category.FOOD,
+            transaction_type=TransactionTypes.INCOME,
+        )
+
+        self.assertEqual(get_total_income(self.user, self.today, self.tomorrow), 10000)
+
+    def test_total_expense(self):
+        Transaction.objects.create(
+            user=self.user,
+            amount=10000,
+            description="test",
+            category=Category.FOOD,
+            transaction_type=TransactionTypes.EXPENSE,
+        )
+
+        self.assertEqual(get_total_expense(self.user, self.today, self.tomorrow), 20000)
+
+    def test_total_balance(self):
+        Transaction.objects.create(
+            user=self.user,
+            amount=10000,
+            description="test",
+            category=Category.FOOD,
+            transaction_type=TransactionTypes.INCOME,
+        )
+
+        self.assertEqual(get_total_balance(self.user, self.today, self.tomorrow), 0)
+
+
